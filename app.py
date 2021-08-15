@@ -52,12 +52,19 @@ def recognize_handler():
         class_id = result.argmax().item()+1
         class_name = get_class_name(class_id)
 
+        # Convert image to base64
+        with open(saved_path, 'rb') as f:
+            img_stream = base64.b64encode(f.read())
+            f.close()
+
         # Create a record in MongoDB
         record = {
             "record_id": global_id,
             "timestamp": timestamp,
             "image_path": saved_path,
             "result": class_name,
+            "class_id": class_id,
+            "image_stream": img_stream,
         }
         db.insert(record)
 
