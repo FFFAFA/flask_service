@@ -1,6 +1,6 @@
 import base64
 
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, jsonify
 import cv2
 from turbojpeg import TurboJPEG
 from flask_cors import CORS
@@ -9,6 +9,7 @@ from utils.class_fetch import get_class_name
 from utils.wiki_fetch import get_wiki_data
 from utils.mongo_db_provider import *
 import utils.mongo_db_provider as db
+from bson import json_util
 
 app = Flask(__name__)
 CORS(app)
@@ -100,7 +101,6 @@ def wiki_handler():
         return 'The request body for /wiki should be in JSON format'
 
 
-
 @app.route('/update_location', methods=['POST'])
 def update_record_location():
     print(request.content_type)
@@ -119,6 +119,13 @@ def update_record_location():
         return 'updated'
     else:
         return 'The request body for /update_location should be in JSON format'
+
+
+@app.route('/map_records', methods=['GET'])
+def get_pinned_records():
+    records = find_pinned_records()
+    return json_util.dumps(records)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

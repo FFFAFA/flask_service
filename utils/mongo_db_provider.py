@@ -1,3 +1,5 @@
+import json
+
 import pymongo
 
 ip = "localhost"
@@ -30,3 +32,13 @@ def find_wiki(class_name):
     wiki_data = col.find_one({"class_name": class_name})
     return wiki_data
 
+
+def find_pinned_records():
+    query = {
+        'location': {
+            '$exists': True
+        }
+    }
+    records = collection.find(query)
+    pinned_records = [rec for rec in records]
+    return pinned_records
