@@ -24,3 +24,9 @@ def update(rec):
     }
     collection.update_one(query, to_update)
 
+
+def find_wiki(class_name):
+    col = db['WikiData']
+    wiki_data = col.find_one({"class_name": class_name})
+    return wiki_data
+

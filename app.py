@@ -1,12 +1,19 @@
-from flask import Flask, request
+import base64
+
+from flask import Flask, request, make_response
+import cv2
+from turbojpeg import TurboJPEG
 from flask_cors import CORS
 from predict import *
 from utils.class_fetch import get_class_name
 from utils.wiki_fetch import get_wiki_data
+from utils.mongo_db_provider import *
 import utils.mongo_db_provider as db
 
 app = Flask(__name__)
 CORS(app)
+
+wiki_img_root_path = '/home/zhaoxue/services/flask_service/WikiImages/'
 
 
 @app.route('/recognize', methods=['POST'])
@@ -56,7 +63,8 @@ def recognize_handler():
         # Return class name
         return class_name
     else:
-        return 'error'
+        return 'The request body for /recognize should contain a image file'
+
 
 
 @app.route('/wiki', methods=['POST'])
@@ -67,21 +75,30 @@ def wiki_handler():
 
     if request_json:
         class_name = request_json['class_name']
-        summary, order_name, family_name, genus_name, species_name, page_url, image_url = get_wiki_data(class_name)
+        wiki_data = find_wiki(class_name)
+        image_url = wiki_data['image_url']
+        image_path = wiki_data['image_path']
+
+        with open(image_path, 'rb') as f:
+            img_stream = base64.b64encode(f.read())
+            f.close()
+
         return {
-            'class_name': class_name,
+            'class_name': wiki_data['class_name'],
             'taxonomy': {
-                'order_name': order_name,
-                'family_name': family_name,
-                'genus_name': genus_name,
-                'species_name': species_name,
+                'order_name': wiki_data['taxonomy']['order'],
+                'family_name': wiki_data['taxonomy']['family'],
+                'genus_name': wiki_data['taxonomy']['genus'],
+                'species_name': wiki_data['taxonomy']['species'],
             },
-            'page_url': page_url,
+            'page_url': wiki_data['page_url'],
             'image_url': image_url,
-            'summary': summary
+            'summary': wiki_data['summary'],
+            'image_stream': img_stream.decode(),
         }
     else:
-        return 'error'
+        return 'The request body for /wiki should be in JSON format'
+
 
 
 @app.route('/update_location', methods=['POST'])
@@ -100,7 +117,8 @@ def update_record_location():
         }
         db.update(rec)
         return 'updated'
-
+    else:
+        return 'The request body for /update_location should be in JSON format'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -8,7 +8,7 @@ import re
 
 def get_wiki_data(class_name):
     print(class_name)
-    if wikipedia.search(class_name):
+    try:
         page = wikipedia.page(class_name, auto_suggest=False)
         page_url = page.url
         summary = page.summary
@@ -38,3 +38,6 @@ def get_wiki_data(class_name):
         species_name = species_ele.find('b').text
 
         return summary, order_name, family_name, genus_name, species_name, page_url, image_url
+    except:
+        print(class_name + ': page not found')
+
