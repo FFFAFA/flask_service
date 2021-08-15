@@ -64,7 +64,7 @@ def recognize_handler():
             "image_path": saved_path,
             "result": class_name,
             "class_id": class_id,
-            "image_stream": img_stream,
+            "image_stream": img_stream.decode(),
         }
         db.insert(record)
 
