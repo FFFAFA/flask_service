@@ -33,12 +33,20 @@ def find_wiki(class_name):
     return wiki_data
 
 
-def find_pinned_records():
+def find_pinned_records_locations():
     query = {
         'location': {
             '$exists': True
         }
     }
     records = collection.find(query)
-    pinned_records = [rec for rec in records]
-    return pinned_records
+    pinned_records_locations = [{'latitude': rec['location']['latitude'], 'longitude': rec['location']['longitude'], 'record_id': rec['record_id']} for rec in records]
+    return pinned_records_locations
+
+
+def find_pinned_record_detail(record_id):
+    query = {
+        'record_id': record_id
+    }
+    record = collection.find_one(query)
+    return record

@@ -74,7 +74,6 @@ def recognize_handler():
         return 'The request body for /recognize should contain a image file'
 
 
-
 @app.route('/wiki', methods=['POST'])
 def wiki_handler():
     print(request.content_type)
@@ -128,10 +127,17 @@ def update_record_location():
         return 'The request body for /update_location should be in JSON format'
 
 
-@app.route('/map_records', methods=['GET'])
+@app.route('/map_records_locations', methods=['GET'])
 def get_pinned_records():
-    records = find_pinned_records()
-    return json_util.dumps(records)
+    locations = find_pinned_records_locations()
+    return json_util.dumps(locations)
+
+
+@app.route('/map_record_detail', methods=['GET'])
+def get_pinned_record_detail():
+    record_id = request.args.get('ID')
+    record = find_pinned_record_detail(record_id)
+    return json_util.dumps(record)
 
 
 if __name__ == '__main__':
