@@ -1,4 +1,5 @@
 import base64
+import shutil
 
 from flask import Flask, request, make_response, jsonify
 import cv2
@@ -45,15 +46,22 @@ def recognize_handler():
         print('Max match value: ', max_match)
 
         # If no match (subject to threshold)
-        if max_match < 14:
+        if max_match < 13:
             return 'invalid image'
 
         # Get class name
         class_id = result.argmax().item()+1
         class_name = get_class_name(class_id)
 
+        # Move success image to class folder
+        class_folder = uploaded_image_path + str(class_id) + '/'
+        if not os.path.exists(class_folder):
+            os.makedirs(class_folder)
+        dest_path = class_folder + global_id + '.' + file_type
+        shutil.move(saved_path, dest_path)
+
         # Convert image to base64
-        with open(saved_path, 'rb') as f:
+        with open(dest_path, 'rb') as f:
             img_stream = base64.b64encode(f.read())
             f.close()
 
@@ -61,7 +69,7 @@ def recognize_handler():
         record = {
             "record_id": global_id,
             "timestamp": timestamp,
-            "image_path": saved_path,
+            "image_path": dest_path,
             "result": class_name,
             "class_id": class_id,
             "image_stream": img_stream.decode(),
@@ -71,7 +79,7 @@ def recognize_handler():
         # Return class name
         return class_name
     else:
-        return 'The request body for /recognize should contain a image file'
+        return 'The request body for /recognize should contain an image file'
 
 
 @app.route('/wiki', methods=['POST'])
